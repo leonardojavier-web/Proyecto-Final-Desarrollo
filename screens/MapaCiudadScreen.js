@@ -1,5 +1,6 @@
 import MapaCiudad from '../components/MapaCiudad';
-import React, { useState, useContext } from 'react'; // NUEVO: useContext
+import BotonReservar from '../components/BotonReservar'; // NUEVO
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,11 +8,8 @@ import {
   Pressable,
   Modal,
   Linking,
-  Alert, // NUEVO
   StyleSheet,
 } from 'react-native';
-import { AuthContext } from '../context/AuthContext'; // NUEVO
-import { guardarVuelo } from '../services/vuelosStorange'; // NUEVO
 
 // INFORMACIÓN DE LAS CIUDADES
 const ciudades = {
@@ -289,12 +287,8 @@ const informacionAerolineas = {
   },
 };
 
-export default function MapaCiudadScreen({ route, navigation }) { // NUEVO: navigation
+export default function MapaCiudadScreen({ route }) {
   const { ciudad, pais } = route.params;
-
-  // NUEVO: usuario desde el contexto
-  const { usuario } = useContext(AuthContext);
-  const idUsuario = typeof usuario === 'object' ? usuario?.email : usuario;
 
   const [lugarSeleccionado, setLugarSeleccionado] = useState(null);
   const [aerolineaSeleccionada, setAerolineaSeleccionada] = useState(null);
@@ -337,30 +331,6 @@ export default function MapaCiudadScreen({ route, navigation }) { // NUEVO: navi
     Linking.openURL(url);
   };
 
-  // NUEVO: guardar la reserva
-  const reservarVuelo = async () => {
-    if (!idUsuario) {
-      Alert.alert('Atención', 'Tenés que iniciar sesión para reservar.');
-      return;
-    }
-
-    const guardado = await guardarVuelo(idUsuario, {
-      origen: 'Córdoba',
-      destino: ciudad,
-      fecha: '15/12/2026',
-      aerolinea: destino.aerolineas[0],
-      precio: 'A consultar',
-    });
-
-    if (!guardado) {
-      Alert.alert('Error', 'No se pudo guardar la reserva.');
-      return;
-    }
-
-    Alert.alert('¡Listo!', 'Tu vuelo fue reservado.');
-    navigation.navigate('MisVuelos');
-  };
-
   return (
     <View style={styles.contenedor}>
       <FlatList
@@ -385,11 +355,10 @@ export default function MapaCiudadScreen({ route, navigation }) { // NUEVO: navi
             />
 
             {/* NUEVO: BOTÓN DE RESERVA */}
-            <Pressable style={styles.boton} onPress={reservarVuelo}>
-              <Text style={styles.textoBoton}>
-                Reservar vuelo a {ciudad}
-              </Text>
-            </Pressable>
+            <BotonReservar
+              ciudad={ciudad}
+              aerolinea={destino.aerolineas[0]}
+            />
           </View>
         }
         renderItem={({ item }) => {

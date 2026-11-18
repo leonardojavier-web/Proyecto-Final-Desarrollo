@@ -1,11 +1,15 @@
-import React, { useState, useCallback, useContext } from 'react'; // NUEVO: useContext
+import React, { useState, useCallback, useContext } from 'react';
 import { View, Text, FlatList, Pressable, StyleSheet } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
-import { AuthContext } from '../context/AuthContext'; // NUEVO
-import { obtenerVuelos, eliminarVuelo } from '../services/vuelosStorange';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export default function MisVuelosScreen() { // NUEVO: sin route
-  // NUEVO: el usuario sale del contexto, no de route.params
+import { AuthContext } from '../context/AuthContext';
+import { obtenerVuelos, eliminarVuelo } from '../services/vuelosStorage';
+
+export default function MisVuelosScreen() {
+  const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
+
   const { usuario } = useContext(AuthContext);
   const idUsuario = typeof usuario === 'object' ? usuario?.email : usuario;
 
@@ -33,15 +37,29 @@ export default function MisVuelosScreen() { // NUEVO: sin route
     if (restantes) setVuelos(restantes);
   };
 
+  const salir = () => {
+    navigation.navigate('Inicio');
+  };
+
   return (
     <View style={styles.contenedor}>
+      {/* BARRA SUPERIOR CON FLECHA */}
+      <View style={[styles.barra, { paddingTop: insets.top + 10 }]}>
+        <Pressable
+          style={styles.botonFlecha}
+          onPress={salir}
+          hitSlop={12}
+        >
+          <Text style={styles.flecha}>←</Text>
+        </Pressable>
+
+        <Text style={styles.tituloBarra}>Mis vuelos</Text>
+      </View>
+
       <FlatList
         data={vuelos}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.lista}
-        ListHeaderComponent={
-          <Text style={styles.titulo}>✈️ Mis vuelos reservados</Text>
-        }
         ListEmptyComponent={
           <Text style={styles.vacio}>
             Todavía no reservaste ningún vuelo.
@@ -80,14 +98,24 @@ export default function MisVuelosScreen() { // NUEVO: sin route
 
 const styles = StyleSheet.create({
   contenedor: { flex: 1, backgroundColor: '#F1F6FA' },
-  lista: { padding: 20, paddingBottom: 35 },
-  titulo: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#123B66',
-    marginBottom: 18,
-    marginTop: 10,
+  barra: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#123B66',
+    paddingHorizontal: 16,
+    paddingBottom: 14,
   },
+  botonFlecha: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  flecha: { color: '#FFFFFF', fontSize: 26, fontWeight: 'bold' },
+  tituloBarra: { color: '#FFFFFF', fontSize: 20, fontWeight: 'bold' },
+  lista: { padding: 20, paddingBottom: 35 },
   vacio: {
     color: '#687786',
     fontSize: 16,
